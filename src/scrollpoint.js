@@ -34,7 +34,7 @@ angular.module('ui.scrollpoint', []).directive('uiScrollpoint', ['$window', func
                 this.hasTarget = false;
                 this.$target = undefined;
                 this.scrollpointClass = 'ui-scrollpoint';
-                this.action = undefined;
+                this.actions = [];
 
                 this.getScrollOffset = function(){
                     return this.hasTarget ? this.$target[0].scrollTop : getWindowScrollTop();
@@ -49,7 +49,9 @@ angular.module('ui.scrollpoint', []).directive('uiScrollpoint', ['$window', func
                 uiScrollpoint.hasTarget = uiScrollpointTarget ? true : false;
                 uiScrollpoint.$target = uiScrollpointTarget && uiScrollpointTarget.$element || angular.element($window);
                 uiScrollpoint.scrollpointClass = scope.uiScrollpointClass || 'ui-scrollpoint';
-                uiScrollpoint.action = scope.uiScrollpointAction ? scope.uiScrollpointAction() : undefined;
+                if(scope.uiScrollpointAction){
+                    uiScrollpoint.actions.push(scope.uiScrollpointAction());
+                }
 
                 var fixLimit;
 
@@ -144,14 +146,23 @@ angular.module('ui.scrollpoint', []).directive('uiScrollpoint', ['$window', func
                             elm.removeClass(uiScrollpoint.scrollpointClass);
                         }
                     }
-                    if(uiScrollpoint.action && angular.isFunction(uiScrollpoint.action) && distance !== null){
+                    if(uiScrollpoint.actions && uiScrollpoint.actions.length && distance !== null){
                         if(!initCheck){
                             scope.$apply(function(){
-                                uiScrollpoint.action(elm, distance * (uiScrollpoint.bottom?-1.0:1.0));
+                                for(var i in uiScrollpoint.actions){
+                                    if(uiScrollpoint.actions[i] && angular.isFunction(uiScrollpoint.actions[i])){
+                                        uiScrollpoint.actions[i](elm, distance * (uiScrollpoint.bottom?-1.0:1.0));
+                                    }
+                                }
                             });
                         }
                         else{
-                            uiScrollpoint.action(elm, distance * (uiScrollpoint.bottom?-1.0:1.0));
+                         //   uiScrollpoint.action(elm, distance * (uiScrollpoint.bottom?-1.0:1.0));
+                             for(var i in uiScrollpoint.actions){
+                                 if(uiScrollpoint.actions[i] && angular.isFunction(uiScrollpoint.actions[i])){
+                                     uiScrollpoint.actions[i](elm, distance * (uiScrollpoint.bottom?-1.0:1.0));
+                                 }
+                             }
                         }
                     }
                 }
@@ -185,73 +196,79 @@ angular.module('ui.scrollpoint', []).directive('uiScrollpoint', ['$window', func
                 this.$element = $element;
             }]
         };
-    }]).directive('uiScrollpointPin', [function () {
+    }]).directive('uiScrollpointPin', ['$compile', '$timeout', function ($compile, $timeout) {
         return {
             restrict: 'A',
             require: 'uiScrollpoint',
-            priority: 400,
-            link: function (scope, elm, attrs , uiScrollpoint ){
-                var action;
-                var placeholder;
+            transclude: true,
+            link: function (scope, elm, attrs , uiScrollpoint, transclude){
+                var pinned;
                 var offset = 0;
                 var origCss = {};
 
-                function repositionPinned(){
-                    if(placeholder){
-                        var element = elm;
-                        var scrollOffset = uiScrollpoint.getScrollOffset();
-                        element.css('top', (scrollOffset-offset)+'px');
-                    }
-                }
+                // stash the un-interpolated innerHTML for when we create the pinned instance
+                transclude(scope, function(clone, scope){
+                    elm[0].srcHTML = clone[0].innerHTML;
+                    elm.append($compile(clone)(scope));
+                });
 
-                // preserve ui-scrollpoint-action
-                if(uiScrollpoint.action){
-                    action = uiScrollpoint.action;
-                }
+                // pinned positioning function
+                function repositionPinned(){
+                    if(pinned){
+                        var scrollOffset = uiScrollpoint.getScrollOffset();
+                        pinned.css('top', (scrollOffset-offset)+'px');
+                    }
+                }                
 
                 // create a scrollpoint action that pins the element
-                uiScrollpoint.action = function(element, distance){
-                    if(distance <= 0 && !placeholder){
+                uiScrollpoint.actions.push( function(element, distance){
+                    if(distance <= 0 && !pinned){
                         // PIN IT
 
                         // calculate the offset for its absolute positioning
                         offset = uiScrollpoint.getScrollOffset() - element[0].offsetTop + distance * (uiScrollpoint.bottom?-1.0:1.0);
-                        
-                        // create an invisible placeholder
-                        placeholder = element.clone();
-                        placeholder.css('visibility', 'hidden');
-                        element.after(placeholder);
 
-                        // save the css properties that get changed by pinning functions
-                        origCss.position = element.css('position');
-                        origCss.top = element.css('top');
+                        // clone the element
+                        pinned = element.clone();
+                        if(element[0].srcHTML){
+                            //pinned[0].innerHTML = element[0].srcHTML;
+                        }
+                        // remove all ui-scrollpoint attributes (original element handles the scrollpoint)
+                        pinned.removeAttr('ui-scrollpoint');
+                        pinned.removeAttr('ui-scrollpoint-action');
+                        pinned.removeAttr('ui-scrollpoint-bottom');
+                        pinned.removeAttr('ui-scrollpoint-class');
+                        pinned.removeAttr('ui-scrollpoint-pin');
 
-                        // pin the element
-                        element.addClass('pinned');
-                        element.css('position', 'absolute');
+                        // absolute position and pinned
+                        pinned.css('position', 'absolute');
+                        pinned.addClass('pinned');
 
-                        // adjust the element's absolute top whenever our target scrolls
+                        // hide the original and inject the pinned
+                        origCss.visibility = element.css('visibility');
+                        element.css('visibility', 'hidden');
+                        element.after(pinned);
+
+                        // listen for scroll events so we can recalculate the pinned position
                         uiScrollpoint.$target.on('scroll', repositionPinned);
                         repositionPinned();
+
+                        // compile the pinned element so it has scope bindings
+                        $compile(pinned)(scope);
                     }
-                    else if(distance > 0 && placeholder){
+                    else if(distance > 0 && pinned){
                         // UNPIN it
-                        element.removeClass('pinned');
-                        element.css('position', origCss.position);
-                        element.css('top', origCss.top);
+
+                        // show the original element
+                        element.css('visibility', origCss.visibility);
                         
-                        // destroy the placeholder
-                        placeholder.remove();
-                        placeholder = undefined;
+                        // remove the pinned version
+                        pinned.remove();
+                        pinned = undefined;
 
                         uiScrollpoint.$target.off('scroll', repositionPinned);
                     }
-
-                    // trigger the ui-scrollpoint-action if there is one
-                    if(action && angular.isFunction(action)){
-                        action(element, distance);
-                    }
-                };
+                });
             }
         };
     }]);

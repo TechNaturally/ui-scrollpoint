@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css">
 
         <!-- ui-scrollpoint files -->
-        <script src="../dist/scrollpoint.js"></script>
+        <script src="../src/scrollpoint.js"></script>
         <script>
             var app = angular.module('demo', ['ui.scrollpoint']);
             app.controller( 'scrollpointTest', function($scope, $rootScope){
@@ -19,7 +19,7 @@
                     $scope.actionClass = (distance < 0) ? 'warning' : 'info';
                     $scope.actionDistance = distance;
                 };
-                $scope.word = 'scrollin';
+                $scope.pinnedWord = 'pinning';
             });
         </script>
         <style>
@@ -56,7 +56,7 @@
 
                     <div id="scrollExample" class="well" ui-scrollpoint="+100">
                         <p ui-scrollpoint>They see me scrollin...</p>
-                        <p ui-scrollpoint ui-scrollpoint-pin>They see me scrollin and pinnin...</p>
+                        <p ui-scrollpoint ui-scrollpoint-pin>They see bee scrollin and <span ng-bind="pinnedWord"></span>... <input type="text" ng-model="pinnedWord" /></p>
                         <p ui-scrollpoint="10%">They see me scrollin (10%)...</p>
                         <p ui-scrollpoint="25%">They see me scrollin (25%)...</p>
                         <p ui-scrollpoint="100%">They see me scrollin (100%)...</p>
@@ -74,6 +74,8 @@
                         <strong>only</strong> adds a
                         <code>ui-scrollpoint</code> class to the element. It is up to you to add the corresponding CSS rules, however it also gives you the ability to add other rules instead if you prefer.
                     </p>
+
+                    <p><label>Pinned items maintain scope bindings</label><br/><input type="text" ng-model="pinnedWord" ng-init="pinnedWord='pinning'" /></p>
                 </div>
             </div>
             <h3>How?</h3>
@@ -90,8 +92,8 @@
                         </div>
                         <div id="scrollExample2" class="well" ui-scrollpoint="+100">
                             <p ui-scrollpoint="+10px">They see me scrollin (+10px)...</p>
-                            <p ui-scrollpoint ui-scrollpoint-pin>They see me scrollin and pinnin...</p>
-                            <p ui-scrollpoint="10%" ui-scrollpoint-pin>They see me scrollin and pinnin (10%)...</p>
+                            <p ui-scrollpoint ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}}...</p>
+                            <p ui-scrollpoint="10%" ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}} (10%)...</p>
                             <p ui-scrollpoint="25%">They see me scrollin (25%)...</p>
                             <p ui-scrollpoint="100%">They see me scrollin (100%)...</p>
                             <p ui-scrollpoint="-100">offest: -100</p>
@@ -193,7 +195,7 @@
                     <div class="well" style="height:200px;overflow:auto; position:relative;"  ui-scrollpoint-target>
                         <div id="scrollExample2" class="well" ui-scrollpoint="+100">
                             <p ui-scrollpoint="-10px" ui-scrollpoint-action="scrollAction">They see me scrollin...</p>
-                            <p ui-scrollpoint ui-scrollpoint-action="scrollAction">They see me scrollin...</p>
+                            <p ui-scrollpoint ui-scrollpoint-action="scrollAction" ui-scrollpoint-pin>They see me scrollin...</p>
                             <p ui-scrollpoint ui-scrollpoint-action="scrollAction">They see me scrollin...</p>
                             <p ui-scrollpoint ui-scrollpoint-action="scrollAction">They see me scrollin...</p>
                             <p ui-scrollpoint ui-scrollpoint-action="scrollAction">They see me scrollin...</p>
@@ -233,8 +235,8 @@ $scope.scrollAction = function(element, distance){
                     <h3>Bottom Scrollpoint</h3>
                     <div class="well">
                         <div id="scrollBottomExample" class="well" ui-scrollpoint ui-scrollpoint-bottom="true">
-                            <p ui-scrollpoint ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and pinnin...</p>
-                            <p ui-scrollpoint="+15" ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and pinnin (+15)...</p>
+                            <p ui-scrollpoint ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}}...</p>
+                            <p ui-scrollpoint="+15" ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}} (+15)...</p>
                             <p ui-scrollpoint="100%" ui-scrollpoint-bottom="true">They see me scrollin (100%)...</p>
                             <p ui-scrollpoint="25%" ui-scrollpoint-bottom="true">They see me scrollin (25%)...</p>
                             <p ui-scrollpoint="10%" ui-scrollpoint-bottom="true">They see me scrollin (10%)...</p>
@@ -260,8 +262,8 @@ $scope.scrollAction = function(element, distance){
                             This is a spacer
                         </div>
                         <div id="scrollBottomExample" class="well" ui-scrollpoint ui-scrollpoint-bottom="true">
-                            <p ui-scrollpoint ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and pinnin...</p>
-                            <p ui-scrollpoint="+15" ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and pinnin (+15)...</p>
+                            <p ui-scrollpoint ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}}...</p>
+                            <p ui-scrollpoint="+15" ui-scrollpoint-bottom="true" ui-scrollpoint-pin>They see me scrollin and {{pinnedWord}} (+15)...</p>
                             <p ui-scrollpoint="50%" ui-scrollpoint-bottom="true">They see me scrollin (50%)...</p>
                             <p ui-scrollpoint="75%" ui-scrollpoint-bottom="true">They see me scrollin (75%)...</p>
                             <p ui-scrollpoint="100%" ui-scrollpoint-bottom="true">They see me scrollin (100%)...</p>
