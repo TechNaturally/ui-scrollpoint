@@ -50,6 +50,14 @@
             .demo.in-view .id {
                 font-weight: bold;
             }
+
+            .demo.pinned {
+                margin: 0px;
+                z-index: 10;
+            }
+            .scrollpoint-target .demo.pinned {
+                z-index: 5;
+            }
         </style>
     </head>
 
@@ -67,8 +75,6 @@
                     </li>
                 </ul>
             </div>
-
-            
 
             <div class="spacerToggle">
                 <label for="windowTopSpacer">Show top spacer:</label> <input type="checkbox" ng-model="topSpacer" id="windowTopSpacer" />
@@ -116,6 +122,12 @@
                 ui-scrollpoint-class="ui-scrollpoint another-scrollpoint"
             </div>
 
+            <div class="demo" ui-scrollpoint ui-scrollpoint-pin ui-scrollpoint-edge="['top','bottom']">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-pin<br/>
+                ui-scrollpoint-edge="['top','bottom']"
+            </div>
+
             <br style="clear:both;"/>
 
             <div class="scrollpoint-target" ui-scrollpoint-target>
@@ -139,6 +151,12 @@
 
                 <div class="demo" ui-scrollpoint="+25">
                     ui-scrollpoint="+25"
+                </div>
+
+                <div class="demo" ui-scrollpoint ui-scrollpoint-pin ui-scrollpoint-edge="['top','bottom']">
+                    ui-scrollpoint<br/>
+                    ui-scrollpoint-pin<br/>
+                    ui-scrollpoint-edge="['top','bottom']"
                 </div>
 
                 <br style="clear:both;"/>
